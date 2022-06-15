@@ -66,7 +66,7 @@ $bodyClass = 'map-page';
 <script>
       var myLatlng,map;
       function initMap() {
-          locate();
+          // locate();
 
       //myLatlng = {lat: 21.2130653, lng: 72.8402571};
 
