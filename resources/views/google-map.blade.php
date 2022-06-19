@@ -21,13 +21,14 @@
     
     <body>
         <div class="container align-items-center justify-content-center mt-5">
+            <input type="text" class="my-3 form-control" id="searchText" placeholder="Enter the location...">
             <div id="map"></div>
         </div>
 
         <script src="{{ asset('map.js') }}"></script>
     
         <script type="text/javascript"
-            src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY_MAIN') }}&libraries=drawing,places&callback=createMap">
+            src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY_1') }}&libraries=drawing,places&callback=createMap">
         </script>
     </body>
 </html>
