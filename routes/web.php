@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MapController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,19 +13,10 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::get('/', function () {
-    return view('welcome');
-});
-
-// Route::get('/test', function () {
-//     return view('test');
-// });
-
 // Route::get('/map', function () {
-//     return view('map');
+//     return view('google-map');
 // });
 
-Route::get('/map', function () {
-    return view('google-map');
-});
+Route::get('/map',[MapController::class, 'map'])->name('map');
+
+

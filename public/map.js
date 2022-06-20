@@ -111,12 +111,11 @@ var map, infoWindow
 function createMap() {
     var a = 23.685,
         b = 90.3563,
-        diff = 0.0033;
+        diff = 1;
 
     var options = {
-        center: { lat: a, lng: b },
-        mapTypeId: "satellite",
-        zoom: 16,
+        center: { lat: 40.52, lng: 34.34 },
+        zoom: 5,
     };
 
     map = new google.maps.Map(document.getElementById("map"), options);
@@ -128,21 +127,43 @@ function createMap() {
         { lat: a - diff, lng: b + diff },
     ];
 
-    var polygon = new google.maps.Polygon({
-        map: map,
-        paths: polygonCoordinates,
-        strokeColor: "blue",
-        fillColor: "blue",
-        fillOpacity: 0.4,
+    const circle = new google.maps.Circle({
+        strokeColor: "#FF0000",
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: "#FF0000",
+        fillOpacity: 0.35,
+        map,
+        center: { lat: 40.52, lng: 34.34 },
+        radius: 16093.4,
         draggable: true,
         editable: true,
     });
 
-    google.maps.event.addListener(polygon.getPath(), "set_at", function () {
-        logArray(polygon.getPath());
-    });
-    google.maps.event.addListener(polygon.getPath(), "insert_at", function () {
-        logArray(polygon.getPath());
+    // var polygon = new google.maps.Polygon({
+    //     map: map,
+    //     paths: polygonCoordinates,
+    //     strokeColor: "blue",
+    //     fillColor: "blue",
+    //     fillOpacity: 0.4,
+    //     draggable: true,
+    //     editable: true,
+    // });
+
+    // google.maps.event.addListener(polygon.getPath(), "set_at", function () {
+    //     console.log(polygon);
+    //     logArray(polygon.getPath());
+    // });
+    // google.maps.event.addListener(polygon.getPath(), "insert_at", function () {
+    //     logArray(polygon.getPath());
+    //     console.log(polygon);
+    // });
+
+    // listen to changes
+    ["bounds_changed", "dragstart", "drag", "dragend"].forEach((eventName) => {
+        circle.addListener(eventName, () => {
+            console.log({ bounds: circle.getBounds()?.toJSON(), eventName });
+        });
     });
 } 
 
