@@ -21,11 +21,25 @@
     
     <body>
         <div class="container align-items-center justify-content-center mt-5">
-            <input type="text" class="my-3 form-control" id="searchText" placeholder="Enter the location...">
+            <div class="mb-5">
+                <div class="form-group">
+                    <input type="text" class="my-3 form-control" id="searchText" placeholder="Enter the location...">
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="radius" onchange="checkBox(this)">
+                        <label class="form-check-label" for="radius">Radius</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="zoan" onchange="checkBox(this)">
+                        <label class="form-check-label" for="zoan">Zone</label>
+                    </div>
+                </div>
+            </div>
             <div id="map"></div>
         </div>
 
-        <script src="{{ asset('map.js') }}"></script>
+        <script src="{{ asset('map_new.js') }}"></script>
     
         <script type="text/javascript"
             src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY_1') }}&libraries=drawing,places&callback=createMap">
