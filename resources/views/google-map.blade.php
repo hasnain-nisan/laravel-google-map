@@ -25,6 +25,9 @@
                 <div class="form-group">
                     <input type="text" class="my-3 form-control" id="searchText" placeholder="Enter the location...">
                 </div>
+                <div class="form-group">
+                    <input type="text" class="my-3 form-control" id="deliveryCharge" placeholder="Enter the charge...">
+                </div>
                 <div class="form-group d-flex justify-content-center">
                     <div class="col-sm">
                         <div class="form-check">
@@ -45,6 +48,7 @@
                     </div>
                     {{-- <input type="number" name="" id=""> --}}
                 </div>
+                <button class="btn btn-primary mt-3" onclick="submit()">Submit</button>
             </div>
             <div id="map"></div>
         </div>
