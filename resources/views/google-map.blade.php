@@ -25,15 +25,25 @@
                 <div class="form-group">
                     <input type="text" class="my-3 form-control" id="searchText" placeholder="Enter the location...">
                 </div>
-                <div class="form-group">
+                <div class="form-group d-flex justify-content-center">
+                    <div class="col-sm">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="zone">
+                            <label class="form-check-label" for="zone">Zone</label>
+                        </div>
+                    </div>
+                    {{-- <div class="form-group">
+                        <label for="">Zone difference</label>
+                        <input class="form-control px-5" type="number" name="" id="zoneDiff" value="1">
+                        <small>This is measured in km</small>
+                    </div> --}}
+                </div>
+                <div class="col-12 d-flex">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="radius" onchange="checkBox(this)">
+                        <input type="checkbox" class="form-check-input" id="radius">
                         <label class="form-check-label" for="radius">Radius</label>
                     </div>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="zoan" onchange="checkBox(this)">
-                        <label class="form-check-label" for="zoan">Zone</label>
-                    </div>
+                    {{-- <input type="number" name="" id=""> --}}
                 </div>
             </div>
             <div id="map"></div>
