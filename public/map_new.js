@@ -118,10 +118,6 @@ function createMap () {
     });
 }
 
-function submit() {
-    logArray(polygon.getPath());
-}
-
 
 // polygon vertices
 function logArray(array) {
@@ -133,4 +129,8 @@ function logArray(array) {
     }
 
     console.log(vertices);
+}
+
+function submit() {
+    logArray(polygon.getPath());
 }
