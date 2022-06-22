@@ -4,8 +4,7 @@ var map,
     infoWindow,
     marker = 1,
     polygon = 1,
-    circle = 1 ,
-    vertices = []
+    circle = 1
     // markers = [], 
     // polygons = [], 
     // circles = [];
@@ -65,7 +64,9 @@ function createMap () {
 
     let zone = document.getElementById("zone");
     zone.addEventListener("change", (e) => {
+        radiusDiv = document.getElementById("radiusDiv");
         if (zone.checked) {
+            radiusDiv.style.display = "none";
             let markerLat = marker.getPosition().lat();
             let markerLng = marker.getPosition().lng();
             let difference = 0.01;
@@ -90,12 +91,15 @@ function createMap () {
             });
         } else {
             polygon.setMap(null);
+            radiusDiv.style.display = "block";
         }
     });
 
     let radius = document.getElementById("radius");
     radius.addEventListener("change", (e) => {
+        zoneDiv = document.getElementById("zoneDiv");
         if (radius.checked) {
+            zoneDiv.style.display = "none";
             let markerLat = marker.getPosition().lat();
             let markerLng = marker.getPosition().lng();
 
@@ -114,6 +118,7 @@ function createMap () {
             });
         } else {
             circle.setMap(null);
+            zoneDiv.style.display = 'block';
         }
     });
 }
@@ -121,6 +126,7 @@ function createMap () {
 
 // polygon vertices
 function logArray(array) {
+    let vertices = [];
     for (var i = 0; i < array.getLength(); i++) {
         vertices.push({
             lat: array.getAt(i).lat(),
@@ -128,9 +134,57 @@ function logArray(array) {
         });
     }
 
-    console.log(vertices);
+    return vertices;
 }
 
 function submit() {
-    logArray(polygon.getPath());
+    let zone = document.getElementById('zone').checked;
+    let radius = document.getElementById('radius').checked;
+    
+    let areaData = null
+    let type = null
+    let placeName = document.getElementById('searchText').value;
+    let deliveryCharge = document.getElementById("deliveryCharge").value;
+
+    console.log(placeName, deliveryCharge);
+    
+    if(placeName === ""){
+        alert("Please enter a place name");
+        return;
+    }
+
+    if(deliveryCharge === ""){
+        alert("Please enter a deliveryCharge");
+        return; 
+    }
+    
+    if(zone || radius){
+        if(zone){
+            type = "zone";
+            data = logArray(polygon.getPath())
+            areaData = {
+                type, 
+                placeName, 
+                deliveryCharge, 
+                data
+            }
+            addArea(areaData)
+        } else {
+            type = "radius";
+            areaData = {
+                type,
+                placeName, 
+                deliveryCharge,
+                data: {
+                    bounds: circle.getBounds()?.toJSON(),
+                    center: circle.getCenter().toJSON(),
+                    radius: circle.getRadius()
+                }
+            }
+            addArea(areaData)
+        }
+    } else {
+        alert('Please select zone or radius');
+        return
+    }
 }

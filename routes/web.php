@@ -18,5 +18,6 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::get('/map',[MapController::class, 'map'])->name('map');
+Route::post('/add-area',[MapController::class, 'addArea'])->name('add-area');
 
 

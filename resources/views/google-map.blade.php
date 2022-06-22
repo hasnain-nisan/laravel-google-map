@@ -28,20 +28,13 @@
                 <div class="form-group">
                     <input type="text" class="my-3 form-control" id="deliveryCharge" placeholder="Enter the charge...">
                 </div>
-                <div class="form-group d-flex justify-content-center">
-                    <div class="col-sm">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="zone">
-                            <label class="form-check-label" for="zone">Zone</label>
-                        </div>
+                <div class="col-12" id="zoneDiv">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="zone">
+                        <label class="form-check-label" for="zone">Zone</label>
                     </div>
-                    {{-- <div class="form-group">
-                        <label for="">Zone difference</label>
-                        <input class="form-control px-5" type="number" name="" id="zoneDiff" value="1">
-                        <small>This is measured in km</small>
-                    </div> --}}
                 </div>
-                <div class="col-12 d-flex">
+                <div class="col-12" id="radiusDiv">
                     <div class="form-check">
                         <input type="checkbox" class="form-check-input" id="radius">
                         <label class="form-check-label" for="radius">Radius</label>
@@ -57,6 +50,27 @@
     
         <script type="text/javascript"
             src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY_1') }}&libraries=drawing,places&callback=createMap">
+        </script>
+
+        <script>
+            const addArea = (data) => {
+                $.ajax({
+                    type: "POST",
+                    url: "{{ route('add-area') }}",
+                    data: {
+                        data,
+                    },
+                    success: function (res) {
+                        console.log(res);
+                    },
+                    error: function (e) {
+                        console.log({
+                            msg: e.responseJSON.message,
+                             line: e.responseJSON.line
+                        });
+                    },
+                });
+            };
         </script>
     </body>
 </html>
