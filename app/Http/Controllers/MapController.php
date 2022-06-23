@@ -16,7 +16,7 @@ class MapController extends Controller
 
     public function map()
     {
-        $areas = DeliveryArea::find(2);
+        $areas = DeliveryArea::all();
         return view('google-map', compact('areas'));
     }
 

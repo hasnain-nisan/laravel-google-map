@@ -1,25 +1,97 @@
-console.log('map');
+console.log('map', areas);
 
 var map, 
     infoWindow,
+    markers = [],
     marker = 1,
     polygon = 1,
+    polygons = [],
     circle = 1
-    // markers = [], 
-    // polygons = [], 
-    // circles = [];
+    circles = []
+
+// var polygonCoordinates1 = modifyCoordinatesLatLngToXY(
+//         JSON.parse(polygons[0].data)
+//     ),
+//     polygonCoordinates2 = modifyCoordinatesLatLngToXY(
+//         JSON.parse(polygons[2].data)
+//     ),
+//     intersection = intersect(polygonCoordinates1, polygonCoordinates2);
 
 function createMap () {
+
+    //start create a map
     var a = 23.685,
         b = 90.3563,
         diff = 0.0033;
-
     var options = {
         center: { lat: a, lng: b },
         zoom: 8,
     };
-
     map = new google.maps.Map(document.getElementById("map"), options);
+    //end create a map
+
+    areas.forEach(element => {
+        let type = element.type
+        let data = JSON.parse(element.data)
+
+        //adding marker
+        new google.maps.Marker({
+            map,
+            title: element.name,
+            position: modifyPolygonCenter(data.center),
+            animation: google.maps.Animation.DROP,
+        });
+
+        if(type === 'zone') {
+            //adding polygon
+            new google.maps.Polygon({
+                map,
+                paths: modifyPolygonVertices(data.vertices),
+                strokeColor: "blue",
+                fillColor: "blue",
+                fillOpacity: 0.4,
+                // draggable: true,
+                editable: true,
+            });
+        } else {
+            console.log('circle');
+        }
+    });
+
+    // var poly1 = new google.maps.Polygon({
+    //     map,
+    //     paths: modifyCoordinatesXYToLatLng(polygonCoordinates1),
+    //     strokeColor: "blue",
+    //     fillColor: "blue",
+    //     fillOpacity: 0.4,
+    //     // draggable: true,
+    //     editable: true,
+    // });
+
+    // var poly2 = new google.maps.Polygon({
+    //     map,
+    //     paths: modifyCoordinatesXYToLatLng(polygonCoordinates2),
+    //     strokeColor: "red",
+    //     fillColor: "red",
+    //     fillOpacity: 0.4,
+    //     // draggable: true,
+    //     editable: true,
+    // });
+
+    // var poly3 = new google.maps.Polygon({
+    //     map,
+    //     paths: modifyCoordinatesXYToLatLng(intersection[0]),
+    //     strokeColor: "yellow",
+    //     fillColor: "yellow",
+    //     fillOpacity: 0.4,
+    //     // draggable: true,
+    //     editable: true,
+    // });
+
+    // poly1.setMap(map)
+    // poly2.setMap(map);
+    // poly3.setMap(map)
+
 
     // Searching places
     var input = document.getElementById("searchText");
@@ -70,7 +142,6 @@ function createMap () {
             let markerLat = marker.getPosition().lat();
             let markerLng = marker.getPosition().lng();
             let difference = 0.01;
-            // let difference = parseFloat(document.getElementById("zoneDiff").value/100);
 
             //ADDING EDITABLE POLYGONS
             var polygonCoordinates = [
@@ -123,20 +194,6 @@ function createMap () {
     });
 }
 
-
-// polygon vertices
-function logArray(array) {
-    let vertices = [];
-    for (var i = 0; i < array.getLength(); i++) {
-        vertices.push({
-            lat: array.getAt(i).lat(),
-            lng: array.getAt(i).lng(),
-        });
-    }
-
-    return vertices;
-}
-
 function submit() {
     let zone = document.getElementById('zone').checked;
     let radius = document.getElementById('radius').checked;
@@ -162,13 +219,18 @@ function submit() {
         if(zone){
             type = "zone";
             data = logArray(polygon.getPath())
+
             areaData = {
-                type, 
-                placeName, 
-                deliveryCharge, 
-                data
-            }
+                type,
+                placeName,
+                deliveryCharge,
+                data: {
+                    center: latLngModify(getCenter(modifyCoordinatesObjectToArray(logArray(polygon.getPath())))),
+                    vertices: logArray(polygon.getPath())
+                },
+            };
             addArea(areaData)
+            location.reload()
         } else {
             type = "radius";
             areaData = {
@@ -182,9 +244,79 @@ function submit() {
                 }
             }
             addArea(areaData)
+            location.reload();
         }
     } else {
         alert('Please select zone or radius');
         return
     }
+}
+
+
+function modifyCoordinatesLatLngToXY(coordinates) {
+    let newCoordinates = [];
+    coordinates.forEach((coord) => {
+        let newCoord = {};
+        newCoord.x = parseFloat(coord.lat);
+        newCoord.y = parseFloat(coord.lng);
+        newCoordinates.push(newCoord);
+    });
+    return newCoordinates;
+}
+
+function modifyCoordinatesXYToLatLng(coordinates) {
+    let newCoordinates = [];
+    coordinates.forEach((coord) => {
+        let newCoord = {};
+        newCoord.lat = parseFloat(coord.x);
+        newCoord.lng = parseFloat(coord.y);
+        newCoordinates.push(newCoord);
+    });
+    return newCoordinates;
+}
+
+function modifyPolygonVertices(coordinates) {
+    let newCoordinates = [];
+    coordinates.forEach((coord) => {
+        let newCoord = {};
+        newCoord.lat = parseFloat(coord.lat);
+        newCoord.lng = parseFloat(coord.lng);
+        newCoordinates.push(newCoord);
+    });
+    return newCoordinates;
+}
+
+function modifyPolygonCenter(coordinate){
+    let newCoord = {};
+    newCoord.lat = parseFloat(coordinate.lat);
+    newCoord.lng = parseFloat(coordinate.lng);
+    return newCoord
+}
+
+function modifyCoordinatesObjectToArray(coordinateObject){
+    let newCoordinates = [];
+    coordinateObject.forEach((coord) => {
+        let newCoord = [parseFloat(coord.lat), parseFloat(coord.lng)];
+        newCoordinates.push(newCoord);
+    });
+    return newCoordinates;
+}
+
+function latLngModify(array) {
+    let coords = {};
+    (coords.lat = array[0]), (coords.lng = array[1]);
+    return coords;
+}
+
+// polygon vertices
+function logArray(array) {
+    let vertices = [];
+    for (var i = 0; i < array.getLength(); i++) {
+        vertices.push({
+            lat: array.getAt(i).lat(),
+            lng: array.getAt(i).lng(),
+        });
+    }
+
+    return vertices;
 }

@@ -12,8 +12,9 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/wicket/1.3.8/wicket.min.js" integrity="sha512-aaiN+QIXD0N9Id865vSDEfttZJV9v8ZGh7jXMnYI2zbZhkSYOulS4IH0u4pC61/KXT20UedYzL5xi5siIg6mlw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        
+        {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/wicket/1.3.8/wicket.min.js" integrity="sha512-aaiN+QIXD0N9Id865vSDEfttZJV9v8ZGh7jXMnYI2zbZhkSYOulS4IH0u4pC61/KXT20UedYzL5xi5siIg6mlw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> --}}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jsts/2.9.0/jsts.min.js" integrity="sha512-XrQsFgFkIrrXvkt2Kh3ePU/f5rfAA2ftGwL16/qs702F1wgF4mlRiJhXimkTSVVw/u89iQpUMoslwMczq8Hjmg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
         <style type="text/css">
             #map {
                 height: 600px;
@@ -48,14 +49,10 @@
             <div id="map"></div>
         </div>
 
-        <script src="{{ asset('map_new.js') }}"></script>
-    
-        <script type="text/javascript"
-            src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY_1') }}&libraries=drawing,places&callback=createMap">
-        </script>
+        <script src="{{ asset('polygon_intersect.js') }}"></script>
 
         <script>
-            let p =  @json($areas)
+            let areas =  @json($areas)
             
             const addArea = (data) => {
                 $.ajax({
@@ -76,6 +73,12 @@
                     },
                 });
             };
+        </script>
+
+        <script src="{{ asset('map_new.js') }}"></script>
+    
+        <script type="text/javascript"
+            src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY_1') }}&libraries=drawing,places&callback=createMap">
         </script>
     </body>
 </html>
