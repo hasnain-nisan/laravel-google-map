@@ -73,6 +73,32 @@
                     },
                 });
             };
+
+            function getCoordinateDetails (position){
+                url =
+                    "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
+                    position.lat + "," + position.lng +
+                    "&sensor=true&key={{ env('GOOGLE_MAP_KEY_1') }}";
+                $.ajax({
+                    type: "GET",
+                    url,
+                    success: function (res) {
+                        let address = ""
+                        for (let index = 1; index < res.results[0].address_components.length; index++) {
+                            address += res.results[0].address_components[index].long_name
+                            address += ", "
+                            
+                        }
+                        document.getElementById('searchText').value = address
+                    },
+                    error: function (e) {
+                        console.log({
+                            msg: e.responseJSON.message,
+                            line: e.responseJSON.line,
+                        });
+                    },
+                });
+            }
         </script>
 
         <script src="{{ asset('map_new.js') }}"></script>

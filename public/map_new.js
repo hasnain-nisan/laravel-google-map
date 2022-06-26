@@ -4,11 +4,11 @@ console.log("map", areas);
 var map,
     infoWindow,
     markers = [],
-    marker = 1,
+    marker,
     polygon = 1,
     polygons = [],
     circle = 1,
-    polygonIntersection
+    polygonIntersection = false;
 circles = [];
 
 // var polygonCoordinates1 = modifyCoordinatesLatLngToXY(
@@ -31,6 +31,7 @@ function createMap() {
     map = new google.maps.Map(document.getElementById("map"), options);
     //end create a map
 
+    marker = new google.maps.Marker({})
     areas.forEach((element) => {
         let type = element.type;
         let data = JSON.parse(element.data);
@@ -58,7 +59,7 @@ function createMap() {
                     // draggable: true,
                     // editable: true,
                 })
-            )
+            );
         } else {
             console.log("circle");
         }
@@ -86,7 +87,7 @@ function createMap() {
         places.forEach(function (p) {
             if (!p.geometry) return;
 
-            //check if marker exist on the place selected
+            // check if marker exist on the place selected
             let isMarkerExists = false;
             markers.forEach(function (marker) {
                 if (isMarkerExists === false) {
@@ -104,22 +105,28 @@ function createMap() {
             });
 
             if (isMarkerExists === false) {
-                marker = new google.maps.Marker({
-                    map,
-                    title: p.name,
-                    position: p.geometry.location,
-                    animation: google.maps.Animation.DROP,
-                });
+                // marker = new google.maps.Marker({
+                //     map,
+                //     title: p.name,
+                //     position: p.geometry.location,
+                //     animation: google.maps.Animation.DROP,
+                //     draggable: true,
+                // });
+                marker.setMap(map)
+                marker.setTitle(p.name);
+                marker.setPosition(p.geometry.location);
+                marker.setAnimation(google.maps.Animation.DROP);
+                marker.setDraggable(true);
                 marker.setIcon(
                     "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
                 );
 
                 //change marker icon color
-                markers.forEach(function(marker) {
+                markers.forEach(function (marker) {
                     marker.setIcon(
                         "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
                     );
-                })
+                });
             }
 
             if (p.geometry.viewport) {
@@ -130,6 +137,10 @@ function createMap() {
 
             map.fitBounds(bounds);
         });
+    });
+
+    google.maps.event.addListener(marker, "dragend", function (event) {
+        getCoordinateDetails(marker.getPosition().toJSON())
     });
 
     let zone = document.getElementById("zone");
@@ -158,7 +169,11 @@ function createMap() {
                 // draggable: true,
                 editable: true,
             });
-            console.log(checkPolygonIntersection(polygon, polygons));
+
+            intersectPolygon = checkPolygonIntersection(polygon, polygons);
+            if (intersectPolygon) {
+                alert('Intersection detected')
+            }
         } else {
             polygon.setMap(null);
             radiusDiv.style.display = "block";
@@ -191,6 +206,15 @@ function createMap() {
             zoneDiv.style.display = "block";
         }
     });
+
+    // google.maps.event.addListener(polygon.getPath(), "set_at", function () {
+    //     console.log(polygon);
+    //     logArray(polygon.getPath());
+    // });
+    // google.maps.event.addListener(polygon.getPath(), "insert_at", function () {
+    //     logArray(polygon.getPath());
+    //     console.log(polygon);
+    // });
 }
 
 function submit() {
@@ -212,6 +236,15 @@ function submit() {
         return;
     }
 
+    if(polygon !== 1){
+        polygonIntersection = checkPolygonIntersection(polygon, polygons);
+        console.log(polygonIntersection);
+        if (polygonIntersection) {
+            alert("Intersection detected");
+            createMap();
+        }
+    }
+
     if (zone || radius) {
         if (zone) {
             type = "zone";
@@ -222,19 +255,18 @@ function submit() {
                 placeName,
                 deliveryCharge,
                 data: {
-                    // center: latLngModify(
-                    //     getCenter(
-                    //         modifyCoordinatesObjectToArray(
-                    //             logArray(polygon.getPath())
-                    //         )
-                    //     )
-                    // ),
                     center: marker.getPosition().toJSON(),
                     vertices: logArray(polygon.getPath()),
                 },
             };
-            addArea(areaData);
-            location.reload();
+
+            let inpolygon = setPolygonMarker(marker, polygon);
+            if(!inpolygon){
+                alert('Please drag marker into the polygon')
+            } else {
+                !polygonIntersection && addArea(areaData);
+                location.reload();
+            }
         } else {
             type = "radius";
             areaData = {
@@ -325,14 +357,30 @@ function logArray(array) {
 }
 
 function checkPolygonIntersection(polygon1, polygonArray) {
-    let intersect = null
+    let result = false
     polygonCoordinates1 = modifyCoordinatesLatLngToXY(
-        logArray(polygon.getPath())
+        logArray(polygon1.getPath())
     );
     polygonArray.forEach(function (polygon) {
-        polygonCoordinates = modifyCoordinatesLatLngToXY(logArray(polygon.getPath()))
-        // if (intersect(polygonCoordinates, polygonCoordinates1).length > 0) {
-            console.log(intersect(polygonCoordinates, polygonCoordinates1));
-        // }
+        let array = (
+            intersect(modifyCoordinatesLatLngToXY(logArray(polygon.getPath())),
+            polygonCoordinates1)
+        );
+        if(array.length > 0){
+            result = array
+        }   
     })
+    return result
+}
+
+function setPolygonMarker(marker, polygon) {
+    mPosition = {
+        x: marker.getPosition().toJSON().lat,
+        y: marker.getPosition().toJSON().lng
+    };
+
+    pVertices = modifyCoordinatesLatLngToXY(logArray(polygon.getPath()));
+    let inPolygon = pointIsInPoly(mPosition, pVertices);
+
+    return inPolygon;
 }
