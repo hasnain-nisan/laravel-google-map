@@ -8,18 +8,24 @@ var map,
     polygon = 1,
     polygons = [],
     circle = 1,
-    polygonIntersection = false;
-circles = [];
-
-// var polygonCoordinates1 = modifyCoordinatesLatLngToXY(
-//         JSON.parse(polygons[0].data)
-//     ),
-//     polygonCoordinates2 = modifyCoordinatesLatLngToXY(
-//         JSON.parse(polygons[2].data)
-//     ),
-//     intersection = intersect(polygonCoordinates1, polygonCoordinates2);
+    polygonIntersection = false,
+    circles = [],
+    circleIntersect = false,
+    circleIntersectPolygon = false
 
 function createMap() {
+
+    //contains method in circle
+    google.maps.Circle.prototype.contains = function (latLng) {
+        return (
+            this.getBounds().contains(latLng) &&
+            google.maps.geometry.spherical.computeDistanceBetween(
+                this.getCenter(),
+                latLng
+            ) <= this.getRadius()
+        );
+    };
+
     //start create a map
     var a = 23.685,
         b = 90.3563,
@@ -45,7 +51,7 @@ function createMap() {
                 position: modifyPolygonCenter(data.center),
                 animation: google.maps.Animation.DROP,
             })
-        );
+        )
 
         if (type === "zone") {
             //adding polygon
@@ -54,14 +60,25 @@ function createMap() {
                     map,
                     paths: modifyPolygonVertices(data.vertices),
                     strokeColor: "blue",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
                     fillColor: "blue",
-                    fillOpacity: 0.4,
-                    // draggable: true,
-                    // editable: true,
+                    fillOpacity: 0.35,
                 })
             );
         } else {
-            console.log("circle");
+           circles.push(
+               new google.maps.Circle({
+                   strokeColor: "blue",
+                   strokeOpacity: 0.8,
+                   strokeWeight: 2,
+                   fillColor: "blue",
+                   fillOpacity: 0.35,
+                   map,
+                   center: modifyPolygonCenter(data.center),
+                   radius: parseFloat(data.radius)
+               })
+           );
         }
     });
 
@@ -105,13 +122,6 @@ function createMap() {
             });
 
             if (isMarkerExists === false) {
-                // marker = new google.maps.Marker({
-                //     map,
-                //     title: p.name,
-                //     position: p.geometry.location,
-                //     animation: google.maps.Animation.DROP,
-                //     draggable: true,
-                // });
                 marker.setMap(map)
                 marker.setTitle(p.name);
                 marker.setPosition(p.geometry.location);
@@ -166,11 +176,13 @@ function createMap() {
                 strokeColor: "blue",
                 fillColor: "blue",
                 fillOpacity: 0.4,
-                // draggable: true,
+                draggable: true,
                 editable: true,
             });
 
+            //checking if polygon intersect
             intersectPolygon = checkPolygonIntersection(polygon, polygons);
+            checkCircleIntersectPolygon(polygon, circles, "zone")
             if (intersectPolygon) {
                 alert('Intersection detected')
             }
@@ -198,23 +210,20 @@ function createMap() {
                 map,
                 center: { lat: markerLat, lng: markerLng },
                 radius: 1000,
-                // draggable: true,
+                draggable: true,
                 editable: true,
             });
+
+            //checking if cirlce intersect
+            intersectCircle = checkCircleIntersection(circle, circles);
+            if (intersectCircle) {
+                alert("Intersection detected");
+            }
         } else {
             circle.setMap(null);
             zoneDiv.style.display = "block";
         }
     });
-
-    // google.maps.event.addListener(polygon.getPath(), "set_at", function () {
-    //     console.log(polygon);
-    //     logArray(polygon.getPath());
-    // });
-    // google.maps.event.addListener(polygon.getPath(), "insert_at", function () {
-    //     logArray(polygon.getPath());
-    //     console.log(polygon);
-    // });
 }
 
 function submit() {
@@ -236,12 +245,21 @@ function submit() {
         return;
     }
 
-    if(polygon !== 1){
+    //check if polygons intersects
+    if (polygon !== 1) {
         polygonIntersection = checkPolygonIntersection(polygon, polygons);
-        console.log(polygonIntersection);
         if (polygonIntersection) {
             alert("Intersection detected");
-            createMap();
+            // createMap();
+        }
+    }
+
+    //check if circles intersects
+    if (circle !== 1) {
+        circleIntersect = checkCircleIntersection(circle, circles);
+        if (circleIntersect) {
+            alert("Intersection detected");
+            // createMap();
         }
     }
 
@@ -261,8 +279,8 @@ function submit() {
             };
 
             let inpolygon = setPolygonMarker(marker, polygon);
-            if(!inpolygon){
-                alert('Please drag marker into the polygon')
+            if (!inpolygon) {
+                alert("Please drag marker into the polygon");
             } else {
                 !polygonIntersection && addArea(areaData);
                 location.reload();
@@ -279,8 +297,14 @@ function submit() {
                     radius: circle.getRadius(),
                 },
             };
-            addArea(areaData);
-            location.reload();
+
+            let incircle = circle.contains(marker.getPosition().toJSON());
+            if (!incircle) {
+                alert("Please drag marker close to the center of the circle");
+            } else {
+                !circleIntersect && addArea(areaData);
+                location.reload();
+            }
         }
     } else {
         alert("Please select zone or radius");
@@ -384,3 +408,48 @@ function setPolygonMarker(marker, polygon) {
 
     return inPolygon;
 }
+
+function circleIntersection(circle0, circle1) {
+    var center0 = circle0.getCenter();
+    var center1 = circle1.getCenter();
+
+    var maxDist = circle0.getRadius() + circle1.getRadius();
+    var actualDist = google.maps.geometry.spherical.computeDistanceBetween(
+        center0,
+        center1
+    );
+
+    return maxDist >= actualDist;
+}
+
+function checkCircleIntersection(circle, circles) {
+    let result = false
+    circles.forEach(function (c) {
+        if (circleIntersection(circle, c)){
+            result = true
+        }
+    });
+    return result
+}
+
+function checkCircleIntersectPolygon(cp, cps, type){
+    if(type === 'zone'){
+        let circleIntersectarray = []
+        let inPolygon = []
+        let vertices = logArray(cp.getPath())
+        cps.forEach(function (circle) {
+            let item = [];
+            vertices.forEach(function (point) {
+                item.push(circle.contains(point))
+            })
+            circleIntersectarray.push(item)
+
+            //check in polygon
+            console.log(circle.getBounds().toJSON());
+        })
+        console.log(circleIntersectarray);
+    }
+    console.log(cp, cps, type);
+}
+
+

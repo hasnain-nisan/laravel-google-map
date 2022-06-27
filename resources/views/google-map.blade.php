@@ -104,7 +104,7 @@
         <script src="{{ asset('map_new.js') }}"></script>
     
         <script type="text/javascript"
-            src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY_1') }}&libraries=drawing,places&callback=createMap">
+            src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY_1') }}&libraries=drawing,places,geometry&callback=createMap">
         </script>
     </body>
 </html>
