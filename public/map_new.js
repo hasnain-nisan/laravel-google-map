@@ -11,7 +11,8 @@ var map,
     polygonIntersection = false,
     circles = [],
     circleIntersect = false,
-    circleIntersectPolygon = false
+    circleIntersectPolygon = false,
+    polygonIntersectCircle = false
 
 function createMap() {
 
@@ -182,9 +183,9 @@ function createMap() {
 
             //checking if polygon intersect
             intersectPolygon = checkPolygonIntersection(polygon, polygons);
-            checkCircleIntersectPolygon(polygon, circles, "zone")
-            if (intersectPolygon) {
-                alert('Intersection detected')
+            circleIntersectPolygon = checkCircleIntersectPolygon(polygon, circles, "zone")
+            if (intersectPolygon || circleIntersectPolygon) {
+                alert("Intersection detected");
             }
         } else {
             polygon.setMap(null);
@@ -202,10 +203,10 @@ function createMap() {
 
             //ADDING EDITABLE CIRCLES
             circle = new google.maps.Circle({
-                strokeColor: "#FF0000",
+                strokeColor: "blue",
                 strokeOpacity: 0.8,
                 strokeWeight: 2,
-                fillColor: "#FF0000",
+                fillColor: "blue",
                 fillOpacity: 0.35,
                 map,
                 center: { lat: markerLat, lng: markerLng },
@@ -216,7 +217,8 @@ function createMap() {
 
             //checking if cirlce intersect
             intersectCircle = checkCircleIntersection(circle, circles);
-            if (intersectCircle) {
+            polygonIntersectCircle = checkCircleIntersectPolygon(circle, polygons, "radius")
+            if (intersectCircle || polygonIntersectCircle) {
                 alert("Intersection detected");
             }
         } else {
@@ -248,7 +250,12 @@ function submit() {
     //check if polygons intersects
     if (polygon !== 1) {
         polygonIntersection = checkPolygonIntersection(polygon, polygons);
-        if (polygonIntersection) {
+        circleIntersectPolygon = checkCircleIntersectPolygon(
+            polygon,
+            circles,
+            "zone"
+        );
+        if (polygonIntersection || circleIntersectPolygon) {
             alert("Intersection detected");
             // createMap();
         }
@@ -257,7 +264,12 @@ function submit() {
     //check if circles intersects
     if (circle !== 1) {
         circleIntersect = checkCircleIntersection(circle, circles);
-        if (circleIntersect) {
+        polygonIntersectCircle = checkCircleIntersectPolygon(
+            circle,
+            polygons,
+            "radius"
+        );
+        if (circleIntersect || polygonIntersectCircle) {
             alert("Intersection detected");
             // createMap();
         }
@@ -282,8 +294,9 @@ function submit() {
             if (!inpolygon) {
                 alert("Please drag marker into the polygon");
             } else {
-                !polygonIntersection && addArea(areaData);
-                location.reload();
+                !polygonIntersection &&
+                !circleIntersectPolygon &&
+                addArea(areaData)
             }
         } else {
             type = "radius";
@@ -302,8 +315,9 @@ function submit() {
             if (!incircle) {
                 alert("Please drag marker close to the center of the circle");
             } else {
-                !circleIntersect && addArea(areaData);
-                location.reload();
+                !circleIntersect &&
+                !polygonIntersectCircle &&
+                addArea(areaData);
             }
         }
     } else {
@@ -433,23 +447,60 @@ function checkCircleIntersection(circle, circles) {
 }
 
 function checkCircleIntersectPolygon(cp, cps, type){
-    if(type === 'zone'){
-        let circleIntersectarray = []
-        let inPolygon = []
-        let vertices = logArray(cp.getPath())
+    if (type === "zone") {
+        let result = [];
+        let pvs = modifyCoordinatesLatLngToXY(logArray(cp.getPath()));
+        let cpvs = [];
         cps.forEach(function (circle) {
-            let item = [];
-            vertices.forEach(function (point) {
-                item.push(circle.contains(point))
-            })
-            circleIntersectarray.push(item)
+            let coordinates = [
+                circle.getCenter().toJSON().lng,
+                circle.getCenter().toJSON().lat,
+            ]; //[lon, lat]
+            let radius = circle.getRadius();
+            let options = { numberOfEdges: 64 };
+            let cvs = circleToPolygon(coordinates, radius, options)
+                .coordinates[0]; //converting circle to polygon and array of vertices
+            cpvs.push(cvs);
+        });
+        cpvs.forEach(function (vs) {
+            let array = intersect(modifyCoordinatesLatLngToXY(vs), pvs);
+            if (array.length > 0) {
+                result.push(array);
+            }
+        });
 
-            //check in polygon
-            console.log(circle.getBounds().toJSON());
+        if (result.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        let result = [];
+        let coordinates = [cp.getCenter().toJSON().lng, cp.getCenter().toJSON().lat]; //[lon, lat]
+        let radius = cp.getRadius();
+        let options = { numberOfEdges: 64 };
+        let cvs = modifyCoordinatesLatLngToXY(
+            circleToPolygon(coordinates, radius, options).coordinates[0]
+        ); //converting circle to polygon and array of vertices
+        let cpvs = [];
+        cps.forEach(function (polygon) {
+            let vertices = modifyCoordinatesLatLngToXY(
+                logArray(polygon.getPath())
+            );
+            cpvs.push(vertices)
         })
-        console.log(circleIntersectarray);
+        cpvs.forEach(function (vs) {
+            let array = intersect(vs, cvs);
+            if (array.length > 0) {
+                result.push(array);
+            }
+        })
+        if (result.length > 0) {
+            return true;
+        } else {
+            return false;
+        }   
     }
-    console.log(cp, cps, type);
 }
 
 
